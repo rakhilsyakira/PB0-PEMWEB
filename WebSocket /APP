@@ -6,7 +6,12 @@ const ws = new WebSocket('ws://localhost:3000');
 
 ws.on('open', () => {
     console.log('Terhubung ke WebSocket Server');
-
+ if (parsedData.type === 'NOTIFICATION') {
+        console.log('Notifikasi dari server:', parsedData.message);
+    } else {
+        console.log('Data diterima dari Server:', data);
+    }
+});
     //kirim pesan ke server
     ws.send('Halo Server! Ini dari Client');
 });
@@ -28,16 +33,6 @@ ws.on('open', () => {
 const jsonData = JSON.parse(data); 
 const query = 'INSERT INTO logs (massage, timestamp) VALUES (?, ?)';
 const values = [jsonData.massage, jsonData.timestamp]; 
-
-ws.on('message', (data) => {
-    const parsedData = JSON.parse(data);
-
-    if (parsedData.type === 'NOTIFICATION') {
-        console.log('Notifikasi dari server:', parsedData.message);
-    } else {
-        console.log('Data diterima dari Server:', data);
-    }
-});
 
 
 db.query(query, values, (err, result) => {
