@@ -4,6 +4,19 @@ const wss = new WebSocket.Server({ port: 3000 });
 
 wss.on('connection', (ws) => {
     console.log('Client connected');
+    // Terima pesan dari client
+    ws.on('message', (message) => {
+        console.log(`Pesan dari client: ${message}`);
+
+    // Cek pesan mengandung keyword tertentu
+        const keyword = 'ALERT';
+        if (message.includes(keyword)) {
+     // Kirim notifikasi ke client jika keyword ditemukan
+        ws.send(JSON.stringify({ type: 'NOTIFICATION', message: 'Keyword ALERT terdeteksi!' }));
+     }
+    });
+});
+
 
     // Kirim pesan ke klien setiap 3 detik
     setInterval(() => {
