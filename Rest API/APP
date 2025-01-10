@@ -1,8 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const koneksi = require('./config/database');
+const jwt = require('jsonwebtoken');
+const { revokeToken, authenticateJWT, logAccess } = require('./middleware/authenticate');
 const app = express();
 const PORT = process.env.PORT || 3000; 
+
 
 //set body parser
 app.use(bodyParser.json());
@@ -24,6 +27,30 @@ app.post('/api/latihanrestapi', (req, res) => {
         // Jika request berhasil
         return res.status(200).json({ message: 'Data berhasil disimpan!', data: rows }); // Tambahkan respons sukses
     });
+});
+
+// Endpoint login
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+
+    // Validasi user (sederhana, gunakan database untuk implementasi nyata)
+    if (username === 'admin' && password === 'password') {
+        const token = jwt.sign({ username }, 'your_secret_key_here', { expiresIn: '1h' });
+        return res.status(200).json({ token });
+    }
+
+    return res.status(401).json({ message: 'Username atau password salah' });
+});
+
+// Endpoint mencabut token
+app.post('/revoke', authenticateJWT, (req, res) => {
+    const { token } = req.body;
+    if (token) {
+        revokeToken(token); // Tambahkan token ke daftar revokedTokens
+        return res.status(200).json({ message: 'Token berhasil dicabut' });
+    }
+
+    res.status(400).json({ message: 'Token diperlukan' });
 });
 
 
