@@ -1,0 +1,41 @@
+const WebSocket = require('ws'); 
+const db = require('./db');
+
+//koneksi ke WebSocket Server
+const ws = new WebSocket('ws://localhost:3000');
+
+ws.on('open', () => {
+    console.log('Terhubung ke WebSocket Server');
+
+    //kirim pesan ke server
+    ws.send('Halo Server! Ini dari Client');
+});
+
+//Terima data dari WebSocket Server
+ws.on('massage', (data) => {
+    ws.on('massage', (data) => {
+        console.log('Data diterima dari Server:', data);
+
+//simpan data ke MySQL
+const jsonData = JSON.parse(data); 
+const query = 'INSERT INTO logs (massage, timestamp) VALUES (?, ?)';
+const values = [jsonData.massage, jsonData.timestamp]; 
+
+db.query(query, values, (err, result) => {
+    if (err) {
+        console.error('Gagal menyimpan data ke MySQL:', err);
+    } else {
+        console.log('Data berhasil disimpan ke database, ID:', 
+            result.insertID);
+    }
+ });
+});
+//handle error
+ws.on('error', (err) => {
+    console.error('Error WebSocket:', err); 
+});
+
+ws.on('close', () => {
+    console.log('WebSocket Connection Closed');
+}); 
+});
