@@ -16,10 +16,29 @@ ws.on('massage', (data) => {
     ws.on('massage', (data) => {
         console.log('Data diterima dari Server:', data);
 
+// Minta data dari server
+ws.on('open', () => {
+    console.log('Terhubung ke WebSocket Server');
+
+    // Kirim pesan GET_DATA ke server untuk membaca data MySQL
+    ws.send('GET_DATA');
+});
+
 //simpan data ke MySQL
 const jsonData = JSON.parse(data); 
 const query = 'INSERT INTO logs (massage, timestamp) VALUES (?, ?)';
 const values = [jsonData.massage, jsonData.timestamp]; 
+
+ws.on('message', (data) => {
+    const parsedData = JSON.parse(data);
+
+    if (parsedData.type === 'NOTIFICATION') {
+        console.log('Notifikasi dari server:', parsedData.message);
+    } else {
+        console.log('Data diterima dari Server:', data);
+    }
+});
+
 
 db.query(query, values, (err, result) => {
     if (err) {
