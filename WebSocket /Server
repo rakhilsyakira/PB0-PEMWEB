@@ -1,22 +1,35 @@
 const WebSocket = require('ws');
+const db = require('./db'); 
 const wss = new WebSocket.Server({ port: 3000 });
 
 wss.on('connection', (ws) => {
-    console.log('Client connectes');
+    console.log('Client connected');
 
-    //kirim pesan ke klien setiap 3 detik 
+    // Kirim pesan ke klien setiap 3 detik
     setInterval(() => {
-        ws.send(JSON.stringify({ massage: 'data dari server',
-            timestamp: new Date()}));
+        ws.send(JSON.stringify({ message: 'Data dari server', timestamp: new Date() }));
     }, 3000);
 
-    //terima pesan dari client
-    ws.on('massage', (massage) => {
-        console.log('pesan dari client: ${massage}');
+    // Terima pesan dari client
+    ws.on('message', (message) => {
+    if (message === 'GET_DATA') {
+    // Query data dari MySQL
+    const query = 'SELECT * FROM logs';
+    db.query(query, (err, results) => {
+        if (err) {
+        console.error('Error membaca data dari MySQL:', err);
+        ws.send(JSON.stringify({ error: 'Gagal membaca data dari MySQL' }));
+        } else {
+        ws.send(JSON.stringify(results)); // Kirim data ke client
+        }
+        });
+        } else {
+            console.log(`Pesan dari client: ${message}`);
+        }
     });
 
     ws.on('close', () => {
-        console.log('client disconnected');
+        console.log('Client disconnected');
     });
 });
 
