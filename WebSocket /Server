@@ -1,0 +1,23 @@
+const WebSocket = require('ws');
+const wss = new WebSocket.Server({ port: 3000 });
+
+wss.on('connection', (ws) => {
+    console.log('Client connectes');
+
+    //kirim pesan ke klien setiap 3 detik 
+    setInterval(() => {
+        ws.send(JSON.stringify({ massage: 'data dari server',
+            timestamp: new Date()}));
+    }, 3000);
+
+    //terima pesan dari client
+    ws.on('massage', (massage) => {
+        console.log('pesan dari client: ${massage}');
+    });
+
+    ws.on('close', () => {
+        console.log('client disconnected');
+    });
+});
+
+console.log('WebSocket server berjalan di ws://localhost:3000');
