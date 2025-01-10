@@ -1,0 +1,38 @@
+const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const SECRET_KEY = 'your_secret_key_here'; // Ubah dengan key rahasia Anda
+let revokedTokens = []; // Untuk menyimpan token yang dicabut
+
+// Middleware autentikasi
+const authenticateJWT = (req, res, next) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ message: 'Token diperlukan' });
+
+    if (revokedTokens.includes(token)) {
+        return res.status(403).json({ message: 'Token telah dicabut' });
+    }
+
+    // Verifikasi token
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (err) return res.status(403).json({ message: 'Token tidak valid' });
+
+        req.user = user; // Menyimpan data user dari token
+        next();
+    });
+};
+
+// mencabut token
+const revokeToken = (token) => {
+    revokedTokens.push(token);
+};
+
+// Logging akses
+const logAccess = (req, res, next) => {
+    const log = `${new Date().toISOString()} - Endpoint: ${req.originalUrl}, User: ${
+        req.user ? req.user.username : 'Anonymous'
+    }\n`;
+    fs.appendFileSync('access.log', log);
+    next();
+};
+
+module.exports = { authenticateJWT, revokeToken, logAccess };
